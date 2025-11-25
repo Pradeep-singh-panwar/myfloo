@@ -1,0 +1,296 @@
+name: "riscv_soc_noc"
+description: "NOC for RISC-V SoC with 6 masters and 16 slaves"
+network_type: "axi_ahb_apb_mixed"
+protocols:
+  - name: "axi"
+    data_width: 128
+  - name: "ahb"
+    data_width: 64
+  - name: "apb"
+    data_width: 32
+
+endpoints:
+  # AXI Masters
+  - name: "cpu"
+    type: "master"
+    protocol: "axi"
+    description: "CPU Core"
+    
+  - name: "gpu"
+    type: "master" 
+    protocol: "axi"
+    description: "Graphics Processing Unit"
+    
+  # AHB Masters
+  - name: "system_dma"
+    type: "master"
+    protocol: "ahb"
+    description: "System DMA Controller"
+    
+  - name: "ethernet"
+    type: "master"
+    protocol: "ahb"
+    description: "Ethernet MAC"
+    
+  # APB Masters
+  - name: "power_mgmt"
+    type: "master"
+    protocol: "apb"
+    description: "Power Management Unit"
+    
+  - name: "test_ctrl"
+    type: "master"
+    protocol: "apb"
+    description: "Test Controller"
+    
+  # AXI Slaves
+  - name: "ddr4"
+    type: "slave"
+    protocol: "axi"
+    description: "DDR4 Memory Controller"
+    base_address: "0x00000000"
+    size: "0x40000000"  # 1 GB
+    
+  - name: "l3_cache"
+    type: "slave"
+    protocol: "axi"
+    description: "L3 Cache Controller"
+    base_address: "0x40000000"
+    size: "0x10000000"  # 256 MB
+    
+  - name: "pcie"
+    type: "slave"
+    protocol: "axi"
+    description: "PCI Express Controller"
+    base_address: "0x50000000"
+    size: "0x10000000"  # 256 MB
+    
+  - name: "npu"
+    type: "slave"
+    protocol: "axi"
+    description: "Neural Processing Unit"
+    base_address: "0x60000000"
+    size: "0x10000000"  # 256 MB
+    
+  # AHB Slaves
+  - name: "nand"
+    type: "slave"
+    protocol: "ahb"
+    description: "NAND Flash Controller"
+    base_address: "0x80000000"
+    size: "0x01000000"  # 16 MB
+    
+  - name: "sram"
+    type: "slave"
+    protocol: "ahb"
+    description: "Tightly-Coupled SRAM"
+    base_address: "0x81000000"
+    size: "0x01000000"  # 16 MB
+    
+  - name: "camera"
+    type: "slave"
+    protocol: "ahb"
+    description: "Camera Interface"
+    base_address: "0x82000000"
+    size: "0x01000000"  # 16 MB
+    
+  - name: "network"
+    type: "slave"
+    protocol: "ahb"
+    description: "Network Controller"
+    base_address: "0x83000000"
+    size: "0x01000000"  # 16 MB
+    
+  # APB Slaves
+  - name: "gpio"
+    type: "slave"
+    protocol: "apb"
+    description: "General Purpose I/O"
+    base_address: "0x90000000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "uart"
+    type: "slave"
+    protocol: "apb"
+    description: "Serial Communication"
+    base_address: "0x90001000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "i2s"
+    type: "slave"
+    protocol: "apb"
+    description: "Audio Interface"
+    base_address: "0x90002000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "pwm"
+    type: "slave"
+    protocol: "apb"
+    description: "Pulse Width Modulation"
+    base_address: "0x90003000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "spi"
+    type: "slave"
+    protocol: "apb"
+    description: "Serial Peripheral Interface"
+    base_address: "0x90004000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "i2c"
+    type: "slave"
+    protocol: "apb"
+    description: "Inter-Integrated Circuit"
+    base_address: "0x90005000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "wdt"
+    type: "slave"
+    protocol: "apb"
+    description: "Watchdog Timer"
+    base_address: "0x90006000"
+    size: "0x00001000"  # 4 KB
+    
+  - name: "rtc"
+    type: "slave"
+    protocol: "apb"
+    description: "Real-Time Clock"
+    base_address: "0x90007000"
+    size: "0x00001000"  # 4 KB
+
+routers:
+  - name: "axi_crossbar"
+    type: "crossbar"
+    protocol: "axi"
+    num_master_ports: 4
+    num_slave_ports: 6
+    
+  - name: "ahb_to_axi_bridge"
+    type: "bridge"
+    input_protocol: "ahb"
+    output_protocol: "axi"
+    
+  - name: "apb_to_axi_bridge"
+    type: "bridge"
+    input_protocol: "apb"
+    output_protocol: "axi"
+    
+  - name: "axi_to_ahb_bridge"
+    type: "bridge"
+    input_protocol: "axi"
+    output_protocol: "ahb"
+    
+  - name: "axi_to_apb_bridge"
+    type: "bridge"
+    input_protocol: "axi"
+    output_protocol: "apb"
+
+connections:
+  # Direct AXI master connections
+  - source: "cpu"
+    dest: "axi_crossbar"
+    
+  - source: "gpu"
+    dest: "axi_crossbar"
+    
+  # AHB masters through bridge
+  - source: "system_dma"
+    dest: "ahb_to_axi_bridge"
+    
+  - source: "ethernet"
+    dest: "ahb_to_axi_bridge"
+    
+  - source: "ahb_to_axi_bridge"
+    dest: "axi_crossbar"
+    
+  # APB masters through bridge
+  - source: "power_mgmt"
+    dest: "apb_to_axi_bridge"
+    
+  - source: "test_ctrl"
+    dest: "apb_to_axi_bridge"
+    
+  - source: "apb_to_axi_bridge"
+    dest: "axi_crossbar"
+    
+  # Direct AXI slave connections
+  - source: "axi_crossbar"
+    dest: "ddr4"
+    
+  - source: "axi_crossbar"
+    dest: "l3_cache"
+    
+  - source: "axi_crossbar"
+    dest: "pcie"
+    
+  - source: "axi_crossbar"
+    dest: "npu"
+    
+  # AHB slaves through bridge
+  - source: "axi_crossbar"
+    dest: "axi_to_ahb_bridge"
+    
+  - source: "axi_to_ahb_bridge"
+    dest: "nand"
+    
+  - source: "axi_to_ahb_bridge"
+    dest: "sram"
+    
+  - source: "axi_to_ahb_bridge"
+    dest: "camera"
+    
+  - source: "axi_to_ahb_bridge"
+    dest: "network"
+    
+  # APB slaves through bridge
+  - source: "axi_crossbar"
+    dest: "axi_to_apb_bridge"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "gpio"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "uart"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "i2s"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "pwm"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "spi"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "i2c"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "wdt"
+    
+  - source: "axi_to_apb_bridge"
+    dest: "rtc"
+
+routing:
+  # CPU can access everything
+  - from: "cpu"
+    to: ["ddr4", "l3_cache", "pcie", "npu", "nand", "sram", "camera", "network", "gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+    
+  # GPU access restrictions
+  - from: "gpu"
+    to: ["ddr4", "l3_cache", "pcie", "npu", "sram"]
+    
+  # System DMA access (all except WDT is read-only)
+  - from: "system_dma"
+    to: ["ddr4", "l3_cache", "pcie", "npu", "nand", "sram", "camera", "network", "gpio", "uart", "i2s", "pwm", "spi", "i2c", "rtc", "wdt"]
+    
+  # Ethernet access restrictions
+  - from: "ethernet"
+    to: ["ddr4", "l3_cache", "sram", "network"]
+    
+  # Power Management access
+  - from: "power_mgmt"
+    to: ["gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc", "pcie", "npu", "nand", "sram", "camera", "network"]
+    
+  # Test Controller access
+  - from: "test_ctrl"
+    to: ["gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc", "ddr4", "l3_cache", "pcie", "npu", "nand", "sram", "camera", "network"]

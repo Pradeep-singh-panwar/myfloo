@@ -1,0 +1,46 @@
+noc:
+  name: "axi4_4x6_noc"
+  topology: "mesh" 
+  protocol: "axi4"
+  dimensions:
+    x: 3
+    y: 2
+  
+  routers:
+    # Master-side routers (4 ports)
+    - id: 0
+      coords: [0, 0]
+      nodes:
+        - name: "cpu"
+          type: "master"
+        - name: "gpu"
+          type: "master"
+          
+    - id: 1  
+      coords: [1, 0]
+      nodes:
+        - name: "system_dma"
+          type: "master"
+        - name: "ethernet"
+          type: "master"
+    
+    # Slave-side routers (6 ports)  
+    - id: 2
+      coords: [0, 1]
+      nodes:
+        - name: "ddr4"
+          type: "slave"
+        - name: "l3_cache"
+          type: "slave"
+        - name: "pcie"
+          type: "slave"
+          
+    - id: 3
+      coords: [1, 1]
+      nodes:
+        - name: "npu"
+          type: "slave"
+        - name: "ahb_bridge"
+          type: "slave"
+        - name: "apb_bridge"
+          type: "slave"

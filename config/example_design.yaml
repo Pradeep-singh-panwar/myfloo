@@ -1,0 +1,30 @@
+noc:
+  name: my_soc_noc
+  protocol: axi4
+  topology: mesh
+  dimensions:
+    x: 2
+    y: 2
+  routers:
+    - id: 0
+      coords: [0, 0]
+      nodes:
+        - name: cpu0
+          type: master
+        - name: sram0
+          type: slave
+    - id: 1
+      coords: [1, 0]
+      nodes:
+        - name: cpu1
+          type: master
+    - id: 2
+      coords: [0, 1]
+      nodes:
+        - name: uart
+          type: slave
+    - id: 3
+      coords: [1, 1]
+      nodes:
+        - name: ddr
+          type: slave

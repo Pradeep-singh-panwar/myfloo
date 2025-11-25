@@ -1,0 +1,260 @@
+noc:
+  name: "riscv_soc_noc"
+  version: "1.0"
+routers:
+  - id: "axi_crossbar"
+    type: "axi_crossbar"
+    dimensions: "4x6"
+    arbitration: "fixed_priority"
+    
+    # Master ports (4 ports)
+    master_ports:
+      - id: "M0"
+        connected: "cpu"
+        protocol: "axi"
+        
+      - id: "M1"
+        connected: "gpu" 
+        protocol: "axi"
+        
+      - id: "M2"
+        connected: "ahb_master_bridge"
+        protocol: "axi"
+        
+      - id: "M3"
+        connected: "apb_master_bridge"
+        protocol: "axi"
+
+    # Slave ports (6 ports)
+    slave_ports:
+      - id: "S0"
+        connected: "ddr4"
+        protocol: "axi"
+        base_address: "0x00000000"
+        
+      - id: "S1"
+        connected: "l3_cache"
+        protocol: "axi"
+        base_address: "0x40000000"
+        
+      - id: "S2"
+        connected: "pcie"
+        protocol: "axi"
+        base_address: "0x50000000"
+        
+      - id: "S3"
+        connected: "npu"
+        protocol: "axi"
+        base_address: "0x60000000"
+        
+      - id: "S4"
+        connected: "axi_to_ahb_bridge"
+        protocol: "axi"
+        base_address: "0x80000000"
+        
+      - id: "S5"
+        connected: "axi_to_apb_bridge"
+        protocol: "axi"
+        base_address: "0x90000000"
+
+bridges:
+  - id: "ahb_to_axi_bridge"
+    type: "master_bridge"
+    input_protocol: "ahb"
+    output_protocol: "axi"
+    connected_masters: ["system_dma", "ethernet"]
+    
+  - id: "apb_to_axi_bridge"
+    type: "master_bridge"
+    input_protocol: "apb"
+    output_protocol: "axi"
+    connected_masters: ["power_mgmt", "test_ctrl"]
+    
+  - id: "axi_to_ahb_bridge"
+    type: "slave_bridge"
+    input_protocol: "axi"
+    output_protocol: "ahb"
+    connected_slaves: ["nand", "sram", "camera", "network"]
+    
+  - id: "axi_to_apb_bridge"
+    type: "slave_bridge"
+    input_protocol: "axi"
+    output_protocol: "apb"
+    connected_slaves: ["gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+
+masters:
+  - id: "cpu"
+    type: "AXI-M1"
+    protocol: "axi"
+    access_type: "read_write"
+    
+  - id: "gpu"
+    type: "AXI-M2"
+    protocol: "axi"
+    access_type: "read_write"
+    
+  - id: "system_dma"
+    type: "AHB-M1"
+    protocol: "ahb"
+    access_type: "read_write"
+    
+  - id: "ethernet"
+    type: "AHB-M2"
+    protocol: "ahb"
+    access_type: "read_write"
+    
+  - id: "power_mgmt"
+    type: "APB-M1"
+    protocol: "apb"
+    access_type: "read_write"
+    
+  - id: "test_ctrl"
+    type: "APB-M2"
+    protocol: "apb"
+    access_type: "read_write"
+
+slaves:
+  - id: "ddr4"
+    type: "AXI-S1"
+    protocol: "axi"
+    base_address: "0x00000000"
+    size: "1 GB"
+    
+  - id: "l3_cache"
+    type: "AXI-S2"
+    protocol: "axi"
+    base_address: "0x40000000"
+    size: "256 MB"
+    
+  - id: "pcie"
+    type: "AXI-S3"
+    protocol: "axi"
+    base_address: "0x50000000"
+    size: "256 MB"
+    
+  - id: "npu"
+    type: "AXI-S4"
+    protocol: "axi"
+    base_address: "0x60000000"
+    size: "256 MB"
+    
+  - id: "nand"
+    type: "AHB-S1"
+    protocol: "ahb"
+    base_address: "0x80000000"
+    size: "16 MB"
+    
+  - id: "sram"
+    type: "AHB-S2"
+    protocol: "ahb"
+    base_address: "0x81000000"
+    size: "16 MB"
+    
+  - id: "camera"
+    type: "AHB-S3"
+    protocol: "ahb"
+    base_address: "0x82000000"
+    size: "16 MB"
+    
+  - id: "network"
+    type: "AHB-S4"
+    protocol: "ahb"
+    base_address: "0x83000000"
+    size: "16 MB"
+    
+  - id: "gpio"
+    type: "APB-S1"
+    protocol: "apb"
+    base_address: "0x90000000"
+    size: "4 KB"
+    
+  - id: "uart"
+    type: "APB-S2"
+    protocol: "apb"
+    base_address: "0x90001000"
+    size: "4 KB"
+    
+  - id: "i2s"
+    type: "APB-S3"
+    protocol: "apb"
+    base_address: "0x90002000"
+    size: "4 KB"
+    
+  - id: "pwm"
+    type: "APB-S4"
+    protocol: "apb"
+    base_address: "0x90003000"
+    size: "4 KB"
+    
+  - id: "spi"
+    type: "APB-S5"
+    protocol: "apb"
+    base_address: "0x90004000"
+    size: "4 KB"
+    
+  - id: "i2c"
+    type: "APB-S6"
+    protocol: "apb"
+    base_address: "0x90005000"
+    size: "4 KB"
+    
+  - id: "wdt"
+    type: "APB-S7"
+    protocol: "apb"
+    base_address: "0x90006000"
+    size: "4 KB"
+    
+  - id: "rtc"
+    type: "APB-S8"
+    protocol: "apb"
+    base_address: "0x90007000"
+    size: "4 KB"
+
+access_control:
+  cpu:
+    access_type: "read_write"
+    slaves: ["ddr4", "l3_cache", "pcie", "npu", "nand", "sram", "camera", "network", "gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+    
+  gpu:
+    access_type: "read_write"
+    slaves: ["ddr4", "l3_cache", "npu", "sram"]
+    read_only: ["pcie"]
+    no_access: ["nand", "camera", "network", "gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+    
+  system_dma:
+    access_type: "read_write"
+    slaves: ["ddr4", "l3_cache", "pcie", "npu", "nand", "sram", "camera", "network", "gpio", "uart", "i2s", "pwm", "spi", "i2c", "rtc"]
+    read_only: ["wdt"]
+    
+  ethernet:
+    access_type: "read_write"
+    slaves: ["ddr4", "l3_cache", "sram", "network"]
+    no_access: ["pcie", "npu", "nand", "camera", "gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+    
+  power_mgmt:
+    access_type: "read_write"
+    slaves: ["gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+    power_state_read_only: ["pcie", "npu", "nand", "sram", "camera", "network"]
+    no_access: ["ddr4", "l3_cache"]
+    
+  test_ctrl:
+    access_type: "test_mode_read_write"
+    slaves: ["gpio", "uart", "i2s", "pwm", "spi", "i2c", "wdt", "rtc"]
+    test_mode_read_only: ["ddr4", "l3_cache", "pcie", "npu", "nand", "sram", "camera", "network"]
+
+# Global configuration
+config:
+  clock_frequencies:
+    axi: "500 MHz"
+    ahb: "250 MHz"
+    apb: "100 MHz"
+    
+  data_widths:
+    axi: 128
+    ahb: 64
+    apb: 32
+    
+  verification:
+    total_masters: 6
+    total_slaves: 16
+    status: "requirements_met"
